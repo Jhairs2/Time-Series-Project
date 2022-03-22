@@ -66,20 +66,23 @@ ui <- navbarPage(
                     lib = "glyphicon")
         )
       ),
+      actionButton("flip", label = "toggle"),
       
       # Creating dropdown menu for changing plot themes and other plot settings
       tags$h6("Variable Settings"),
       br(),
-      dropdown(title = ("Input Settings")),
-      
-      
-      style = "unite",
-      icon = icon("cog"),
-      status = "danger",
-      width = "300px",
-      animate = animateOptions(
-        enter = animations$fading_entrances$fadeInLeftBig,
-        exit = animations$fading_exits$fadeOutRightBig
+      dropdown(
+        title = ("Input Settings"),
+        
+        
+        style = "unite",
+        icon = icon("cog"),
+        status = "danger",
+        width = "300px",
+        animate = animateOptions(
+          enter = animations$fading_entrances$fadeInLeftBig,
+          exit = animations$fading_exits$fadeOutRightBig
+        )
       )
     ),
     
@@ -95,16 +98,14 @@ ui <- navbarPage(
       left = "35%"
     ),
     
-    
     absolutePanel(
       withLoader(
         plotlyOutput("timePlot2"),
         type = "html",
         loader = "dnaspin"
       ),
-      top = "50%",
-      width = "100%",
-      draggable = TRUE
+      top = "65%",
+      width = "100%"
     ),
     
     icon = icon("fas fa-chart-bar")
@@ -114,42 +115,53 @@ ui <- navbarPage(
   tabPanel(
     "Decomposition",
     
-    
-    selectizeInput("data2", label = "Select a Dataframe",
-                   choices = dataSet[c(1, 3, 6, 8, 10, 13)]),
-    
-    
-    tags$h6("Variable Settings"),
-    br(),
-    dropdown(
-      title = ("Input Settings"),
-      
-      textInput(
-        inputId = 'filter',
-        label = 'Filter',
-        placeholder = "type here"
-      ),
-      
-      
-      style = "unite",
-      icon = icon("cog"),
-      status = "danger",
-      width = "300px",
-      animate = animateOptions(
-        enter = animations$fading_entrances$fadeInLeftBig,
-        exit = animations$fading_exits$fadeOutRightBig
+    fluidRow(
+      width = 6,
+      sidebarPanel(
+        selectizeInput("data2", label = "Select a Dataframe",
+                       choices = dataSet[c(1, 3, 6, 8, 10, 13)]),
+        radioGroupButtons(
+          inputId = "plotOptions3",
+          label = "Displayed Plot",
+          choices = c("Additive", "Multiplicative"),
+          status = "primary",
+          checkIcon = list(
+            yes = icon("ok",
+                       lib = "glyphicon"),
+            no = icon("remove",
+                      lib = "glyphicon")
+          )
+        ),
+        
+        tags$h6("Variable Settings"),
+        br(),
+        dropdown(
+          title = ("Input Settings"),
+          
+          textInput(
+            inputId = 'filter',
+            label = 'Filter',
+            placeholder = "type here"
+          ),
+          
+          
+          style = "unite",
+          icon = icon("cog"),
+          status = "danger",
+          width = "300px",
+          animate = animateOptions(
+            enter = animations$fading_entrances$fadeInLeftBig,
+            exit = animations$fading_exits$fadeOutRightBig
+          )
+        )
       )
     ),
     
-    withLoader(type = "html",
-               loader = "dnaspin",
-               
-               plotlyOutput("decomp")),
-    
-    withLoader(type = "html",
-               loader = "dnaspin",
-               
-               plotlyOutput("decomp2")),
+ 
+      withLoader(type = "html",
+                 loader = "dnaspin",
+                 
+                 plotlyOutput("decomp")),
     
     icon = icon("fas fa-chart-line")
   ),
@@ -157,9 +169,42 @@ ui <- navbarPage(
   # Other menu options
   navbarMenu(
     "More",
-    tabPanel("Help", tabName = "help", icon = icon("question")),
+    tabPanel("Help", icon = icon("question")),
     "----",
-    tabPanel("Other Feature"),
+    tabPanel(
+      "Other Feature",
+      h2("Instructions"),
+      HTML("<font size=+2> This app is for looking at time-series from the fpp3 R package in closer detail. Full, Seaasonal, Additive and
+      Multiplicative Decomp., and autocorrelation plots will be available to view. For more info on data sets check the  help section
+      in ***.</font> "),
+    
+      br(),
+      br(),
+      
+      HTML(
+        "
+        <h4> Plots Tab </h4>
+                  <ul> <font size=+2> 
+                        <li> Select a time series from the list. </li>
+                        <li> Choose a Y variable to look at and whether you want a seasonal or autocorrelation plot</li>
+                        <li> A interactive full plot of time series will be shown below as well as the chosen seasonal or autocorrelation
+                        plot.</li>
+                        <li> In Plot settings menu, you can choose from a list and
+                        change theme of plots </li>
+                        </font> 
+                  </ul>"
+      ),
+      br(),
+      HTML(
+        "<h4> Decomposition Tab </h4> <font size=+2> 
+                  <ul>
+                      <li> Select a time series from the list </li>
+                      <li> Choose what type of Decomp. plot you want </li>
+                      <li> A interactive Decomp. plot of the series(Decomp. variable is pre-selected) will be displayed below. </li>
+                  </ul> </font>"
+      ),
+      
+    ),
     "----",
     tabPanel("Interpretations")
   ),
@@ -172,13 +217,24 @@ ui <- navbarPage(
 
 
 server <- function(input, output, session) {
+  output$timeplot <- renderUI({
+    side <- if (input$flip1)
+      "front"
+    else
+      "back"
+  })
+  
+  observeEvent(input$flip, {
+    updateFlipBox("flip1")
+  })
+  
   # Getting data for full, seasonal, autocorr. plots
   plotData <- eventReactive(input$data, {
-    Info <- get(input$data)
+    Info <<- get(input$data)
   })
   # Getting data for decomp plots
-  plotData2 <- eventReactive(input$data2, {
-    Info2 <- get(input$data2)
+  plotData2 <<- eventReactive(input$data2, {
+    Info2 <<- get(input$data2)
   })
   
   # updating variable choices for input
@@ -229,188 +285,195 @@ server <- function(input, output, session) {
   
   # Displaying additive and multiplicative decomp plots based off what dataset is chosen
   output$decomp <- renderPlotly({
-    switch(
-      input$data2,
-      
-      aus_accommodation = plotData2() %>%
-        model (classical_decomposition(Takings, type = "additive")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Additive Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Takings = trend + seasonal + random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y = "Takings"),
-      
-      aus_arrivals = plotData2() %>%
-        model (classical_decomposition(Arrivals, type = "additive")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Additive Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Arrivals = trend + seasonal + random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Arrivals"),
-      
-      canadian_gas = plotData2() %>%
-        model (classical_decomposition(Volume, type = "additive")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Additive Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Volume = trend + seasonal + random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Volumes"),
-      
-      insurance = plotData2() %>%
-        model (classical_decomposition(TVadverts, type = "additive")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Additive Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> TVadverts = trend + seasonal + random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "TVadverts"),
-      
-      souvenirs = plotData2() %>%
-        model (classical_decomposition(Sales, type = "additive")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Additive Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Sales = trend + seasonal + random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Sales"),
-      
-      us_gasoline = plotData2() %>%
-        model (classical_decomposition(Barrels, type = "additive")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Additive Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Barrels = trend + seasonal + random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Barrels")
-    )
+    if (input$plotOptions3 == "Additive") {
+      switch(
+        input$data2,
+        
+        aus_accommodation = plotData2() %>%
+          model (classical_decomposition(Takings, type = "additive")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Additive Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Takings = trend + seasonal + random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y = "Takings"),
+        
+        aus_arrivals = plotData2() %>%
+          model (classical_decomposition(Arrivals, type = "additive")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Additive Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Arrivals = trend + seasonal + random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Arrivals"),
+        
+        canadian_gas = plotData2() %>%
+          model (classical_decomposition(Volume, type = "additive")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Additive Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Volume = trend + seasonal + random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Volumes"),
+        
+        insurance = plotData2() %>%
+          model (classical_decomposition(TVadverts, type = "additive")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Additive Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> TVadverts = trend + seasonal + random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "TVadverts"),
+        
+        souvenirs = plotData2() %>%
+          model (classical_decomposition(Sales, type = "additive")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Additive Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Sales = trend + seasonal + random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Sales"),
+        
+        us_gasoline = plotData2() %>%
+          model (classical_decomposition(Barrels, type = "additive")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Additive Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Barrels = trend + seasonal + random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Barrels")
+      )
+    }
+    
+    else{
+      switch(
+        input$data2,
+        aus_accommodation = plotData2() %>%
+          model (
+            classical_decomposition(Takings, type = "multiplicative")
+          ) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Multiplicative Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Takings = trend * seasonal * random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y = "Takings"),
+        
+        aus_arrivals = plotData2() %>%
+          model (
+            classical_decomposition(Arrivals, type = "multiplicative")
+          ) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Multiplicative Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Arrivals = trend * seasonal * random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Arrivals"),
+        
+        canadian_gas = plotData2() %>%
+          model (
+            classical_decomposition(Volume, type = "multiplicative")
+          ) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Multiplicative Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Volume = trend * seasonal * random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Volumes"),
+        
+        insurance = plotData2() %>%
+          model (
+            classical_decomposition(TVadverts, type = "multiplicative")
+          ) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Multiplicative Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> TVadverts = trend * seasonal * random"
+            )
+          ) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "TVadverts"),
+        
+        souvenirs = plotData2() %>%
+          model (classical_decomposition(Sales, type = "multiplicative")) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Multiplicative Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Sales = trend * seasonal * random"
+            )
+          )  +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Sales"),
+        
+        us_gasoline = plotData2() %>%
+          model (
+            classical_decomposition(Barrels, type = "multiplicative")
+          ) %>%
+          components() %>%
+          autoplot() + dark_theme_light() +
+          ggtitle(
+            paste(
+              "Multiplicative Decomp for",
+              names[which(D$results[, "Item"] == input$data2)],
+              "<br> Barrels = trend * seasonal * random"
+            )
+          )  +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(y  = "Barrels")
+      )
+    }
   })
-  output$decomp2 <- renderPlotly({
-    switch(
-      input$data2,
-      
-      aus_accommodation = plotData2() %>%
-        model (classical_decomposition(Takings, type = "multiplicative")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Multiplicative Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Takings = trend * seasonal * random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y = "Takings"),
-      
-      aus_arrivals = plotData2() %>%
-        model (
-          classical_decomposition(Arrivals, type = "multiplicative")
-        ) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Multiplicative Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Arrivals = trend * seasonal * random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Arrivals"),
-      
-      canadian_gas = plotData2() %>%
-        model (classical_decomposition(Volume, type = "multiplicative")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Multiplicative Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Volume = trend * seasonal * random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Volumes"),
-      
-      insurance = plotData2() %>%
-        model (
-          classical_decomposition(TVadverts, type = "multiplicative")
-        ) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Multiplicative Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> TVadverts = trend * seasonal * random"
-          )
-        ) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "TVadverts"),
-      
-      souvenirs = plotData2() %>%
-        model (classical_decomposition(Sales, type = "multiplicative")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Multiplicative Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Sales = trend * seasonal * random"
-          )
-        )  +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Sales"),
-      
-      us_gasoline = plotData2() %>%
-        model (classical_decomposition(Barrels, type = "multiplicative")) %>%
-        components() %>%
-        autoplot() + dark_theme_light() +
-        ggtitle(
-          paste(
-            "Multiplicative Decomp for",
-            names[which(D$results[, "Item"] == input$data2)],
-            "<br> Barrels = trend * seasonal * random"
-          )
-        )  +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        labs(y  = "Barrels")
-    )
-  })
-  
   
 }
 
