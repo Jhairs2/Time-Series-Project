@@ -1,2 +1,2 @@
 # Time-Series-Project
-App project for time series
+App project for BAS 475 ime series
