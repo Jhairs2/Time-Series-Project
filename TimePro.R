@@ -66,7 +66,6 @@ ui <- navbarPage(
                     lib = "glyphicon")
         )
       ),
-      actionButton("flip", label = "toggle"),
       
       # Creating dropdown menu for changing plot themes and other plot settings
       tags$h6("Variable Settings"),
@@ -96,6 +95,7 @@ ui <- navbarPage(
       height = '100%',
       width = '60%',
       left = "35%"
+      
     ),
     
     absolutePanel(
@@ -104,8 +104,9 @@ ui <- navbarPage(
         type = "html",
         loader = "dnaspin"
       ),
-      top = "65%",
-      width = "100%"
+      top = "55%",
+      width = "100%",
+      draggable = T
     ),
     
     icon = icon("fas fa-chart-bar")
@@ -157,46 +158,52 @@ ui <- navbarPage(
       )
     ),
     
- 
-      withLoader(type = "html",
-                 loader = "dnaspin",
-                 
-                 plotlyOutput("decomp")),
+    
+    withLoader(type = "html",
+               loader = "dnaspin",
+               
+               plotlyOutput("decomp")),
     
     icon = icon("fas fa-chart-line")
   ),
   
+  
+  tabPanel("Interpretations", icon = icon("book")),
   # Other menu options
   navbarMenu(
-    "More",
-    tabPanel("Help", icon = icon("question")),
-    "----",
+    "Help",
+    icon = icon("question"),
     tabPanel(
-      "Other Feature",
+      "Instructions",
+      icon = icon("list"),
+      
+      
       h2("Instructions"),
-      HTML("<font size=+2> This app is for looking at time-series from the fpp3 R package in closer detail. Full, Seaasonal, Additive and
+      HTML(
+        "<font size=+2> This app is for looking at time-series from the fpp3 R package in closer detail. Full, Seaasonal, Additive and
       Multiplicative Decomp., and autocorrelation plots will be available to view. For more info on data sets check the  help section
-      in ***.</font> "),
-    
+      in ***.</font> "
+      ),
+      
       br(),
       br(),
       
       HTML(
         "
         <h4> Plots Tab </h4>
-                  <ul> <font size=+2> 
+                  <ul> <font size=+2>
                         <li> Select a time series from the list. </li>
                         <li> Choose a Y variable to look at and whether you want a seasonal or autocorrelation plot</li>
                         <li> A interactive full plot of time series will be shown below as well as the chosen seasonal or autocorrelation
                         plot.</li>
                         <li> In Plot settings menu, you can choose from a list and
                         change theme of plots </li>
-                        </font> 
+                        </font>
                   </ul>"
       ),
       br(),
       HTML(
-        "<h4> Decomposition Tab </h4> <font size=+2> 
+        "<h4> Decomposition Tab </h4> <font size=+2>
                   <ul>
                       <li> Select a time series from the list </li>
                       <li> Choose what type of Decomp. plot you want </li>
@@ -205,8 +212,12 @@ ui <- navbarPage(
       ),
       
     ),
+    
+    
     "----",
-    tabPanel("Interpretations")
+    
+    tabPanel("Other Feature")
+    
   ),
   
   
