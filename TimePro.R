@@ -13,6 +13,51 @@ D <- data(package = "fpp3")
 names <- D$results[, "Title"]
 dataSet <- D$results[, "Item"]
 
+TimeSeries <-
+  c(
+    "aus_accommodation",
+    "aus_arrivals",
+    "canadian_gas",
+    "insurance",
+    "souvenirs",
+    "us_change",
+    "us_gasoline"
+  )
+Description <- c(
+  "aus_accommodation is a quarterly 'tsibble' containing data on Australian tourist accommodation from short-term non-residential
+  accommodation with 15 or more rooms, 1998 Q1 - 2016 Q2. The data set also contains the Australian Consumer Price Index (CPI) for the same period.
+  Takings are in millions of Australian dollars, Occupancy is a percentage of rooms occupied, CPI is an index with value 100 in 2012 Q1.
+",
+  "Quarterly international arrivals to Australia from Japan, New Zealand, UK and the US. 1981Q1 - 2012Q3.",
+  
+  "Monthly Canadian gas production, billions of cubic metres, January 1960 - February 2005",
+  
+  "Monthly quotations and monthly television advertising expenditure for a US insurance company. January 2002 to April 2005",
+  
+  "Monthly sales for a souvenir shop on the wharf at a beach resort town in Queensland, Australia.",
+  
+  "us_change is a quarterly 'tsibble' containing percentage changes in quarterly personal consumption expenditure, personal disposable
+  income, production, savings and the unemployment rate for the US, 1970 to 2016. Original $ values were in chained 2012 US dollars.",
+  
+  "Weekly data beginning Week 6, 1991, ending Week 3, 2017. Units are 'million barrels per day'."
+)
+Source <-
+  c(
+    "Australian Bureau of Statistics, Cat No 8635.0, Table 10, and Cat No 6401.0, Table 1.",
+    "Tourism Research Australia.",
+    "Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential
+            smoothing: the state space approach, Springer.",
+    "Kindly provided by Dave Reilly, Automatic Forecasting Systems.",
+    "Makridakis, Wheelwright and Hyndman (1998) *Forecasting: methods and applications*,
+            John Wiley & Sons: New York. Exercise 5.8.",
+    "Federal Reserve Bank of St Louis.",
+    "US Energy Information Administration."
+  )
+Names <- names[c(1, 3, 6, 8, 10, 11, 13)]
+dataInfo <- data.frame(Names, TimeSeries, Description, Source)
+
+
+
 ui <- navbarPage(
   "Time Series Analysis",
   
@@ -67,25 +112,10 @@ ui <- navbarPage(
         )
       ),
       
-      # Creating dropdown menu for changing plot themes and other plot settings
-      tags$h6("Variable Settings"),
-      br(),
-      dropdown(
-        title = ("Input Settings"),
-        
-        
-        style = "unite",
-        icon = icon("cog"),
-        status = "danger",
-        width = "300px",
-        animate = animateOptions(
-          enter = animations$fading_entrances$fadeInLeftBig,
-          exit = animations$fading_exits$fadeOutRightBig
-        )
-      )
+      
+      
+      actionButton("show", "Help")
     ),
-    
-    
     
     # Plots will be displayed with dna loaders
     absolutePanel(
@@ -134,27 +164,7 @@ ui <- navbarPage(
           )
         ),
         
-        tags$h6("Variable Settings"),
-        br(),
-        dropdown(
-          title = ("Input Settings"),
-          
-          textInput(
-            inputId = 'filter',
-            label = 'Filter',
-            placeholder = "type here"
-          ),
-          
-          
-          style = "unite",
-          icon = icon("cog"),
-          status = "danger",
-          width = "300px",
-          animate = animateOptions(
-            enter = animations$fading_entrances$fadeInLeftBig,
-            exit = animations$fading_exits$fadeOutRightBig
-          )
-        )
+        actionButton("show2", "Help")
       )
     ),
     
@@ -171,52 +181,11 @@ ui <- navbarPage(
   tabPanel("Interpretations", icon = icon("book")),
   # Other menu options
   navbarMenu(
-    "Help",
-    icon = icon("question"),
-    tabPanel(
-      "Instructions",
-      icon = icon("list"),
-      
-      
-      h2("Instructions"),
-      HTML(
-        "<font size=+2> This app is for looking at time-series from the fpp3 R package in closer detail. Full, Seaasonal, Additive and
-      Multiplicative Decomp., and autocorrelation plots will be available to view. For more info on data sets check the  help section
-      in ***.</font> "
-      ),
-      
-      br(),
-      br(),
-      
-      HTML(
-        "
-        <h4> Plots Tab </h4>
-                  <ul> <font size=+2>
-                        <li> Select a time series from the list. </li>
-                        <li> Choose a Y variable to look at and whether you want a seasonal or autocorrelation plot</li>
-                        <li> A interactive full plot of time series will be shown below as well as the chosen seasonal or autocorrelation
-                        plot.</li>
-                        <li> In Plot settings menu, you can choose from a list and
-                        change theme of plots </li>
-                        </font>
-                  </ul>"
-      ),
-      br(),
-      HTML(
-        "<h4> Decomposition Tab </h4> <font size=+2>
-                  <ul>
-                      <li> Select a time series from the list </li>
-                      <li> Choose what type of Decomp. plot you want </li>
-                      <li> A interactive Decomp. plot of the series(Decomp. variable is pre-selected) will be displayed below. </li>
-                  </ul> </font>"
-      ),
-      
-    ),
+    "Info",
+    icon = icon("far fa-info-circle"),
     
-    
-    "----",
-    
-    tabPanel("Other Feature")
+    tabPanel("Dataset Info", icon = icon("fas fa-database"),
+             dataTableOutput("x"))
     
   ),
   
@@ -228,17 +197,6 @@ ui <- navbarPage(
 
 
 server <- function(input, output, session) {
-  output$timeplot <- renderUI({
-    side <- if (input$flip1)
-      "front"
-    else
-      "back"
-  })
-  
-  observeEvent(input$flip, {
-    updateFlipBox("flip1")
-  })
-  
   # Getting data for full, seasonal, autocorr. plots
   plotData <- eventReactive(input$data, {
     Info <<- get(input$data)
@@ -486,6 +444,49 @@ server <- function(input, output, session) {
     }
   })
   
+  output$x <- renderDataTable({
+    dataInfo
+  })
+  
+  observeEvent(input$show, {
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>   <li> Select a time series from the list. </li>
+                        <li> Choose a Y variable to look at and whether you want a seasonal or autocorrelation plot</li>
+                        <li> A interactive full plot of time series will be shown below as well as the chosen seasonal or autocorrelation
+                             plot on the top right. </li>
+                        <li> On the full plot click the legend names to hide it from the plot </li>
+                        <li> For more info on datasets check info tab </li> </font>
+                    **** Bottom plot is also draggable in case of overlapping ****"
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
+  })
+  
+  
+  observeEvent(input$show2, {
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>
+
+                      <li> Select a time series from the list </li>
+                      <li> Choose what type of Decomp. plot you want </li>
+                      <li> A interactive Decomp. plot of the series will be displayed below. </li>
+                      <li> Click the legend names to hide it from the plot </li>
+                      <li> For more info on datasets check info tab </li></font>
+                      **** Y variables are already chosen for each decomp **** "
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
+  })
 }
 
 shinyApp(ui, server)
