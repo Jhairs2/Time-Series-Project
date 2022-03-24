@@ -53,7 +53,7 @@ Source <-
     "US Energy Information Administration."
   )
 Names <- names[c(1, 3, 6, 8, 10, 11, 13)]
-page <- "a"
+
 
 
 ui <- navbarPage(
@@ -66,8 +66,8 @@ ui <- navbarPage(
     absolutePanel(
       HTML("<h1> Time Series Analysis Project
          <br> by Justin Hairston </h1>"),
-      top = "25%",
-      left = "5%"
+      top = "25vh",
+      left = "5vw"
     ),
     
     tags$img(
@@ -120,11 +120,13 @@ ui <- navbarPage(
       withLoader(plotOutput("timePlot"), type = "html",
                  loader = "dnaspin"),
       
-      height = '100%',
-      width = '60%',
-      left = "35%"
+      height = '50vh',
+      width = '60vw',
+      left = "35vw"
       
     ),
+    br(),
+    br(),
     
     absolutePanel(
       withLoader(
@@ -132,9 +134,8 @@ ui <- navbarPage(
         type = "html",
         loader = "dnaspin"
       ),
-      top = "55%",
-      width = "100%",
-      draggable = T
+      top = "70vh",
+      width = "100vw"
     ),
     
     icon = icon("fas fa-chart-bar")
@@ -192,21 +193,8 @@ ui <- navbarPage(
     tabPanel(
       "Interpretation",
       icon = icon("book"),
-      
-      tags$div(
-        HTML(
-          "<center><h2>Analysis</h2></center>
-                <center> This analysis is done on the aus_arrivals dataset.</center>"
-        )
-      ),
-      
-      br(),
-      br(),
-      
-      absolutePanel(
-        withLoader(type = "html", loader = "dnaspin", plotOutput("test")),
-        br(),
-        absolutePanel(
+      fluidRow(column(
+        width = 6,  sidebarPanel(
           radioGroupButtons(
             inputId = "plotOptions4",
             label = "Displayed Plot",
@@ -218,13 +206,18 @@ ui <- navbarPage(
               no = icon("remove",
                         lib = "glyphicon")
             )
-          ),
-          left = "25%"
-        ),
+          )
+        )
+      )),
+      
+      absolutePanel(
+        withLoader(type = "html", loader = "dnaspin", plotOutput("test")),
+        br(),
         
-        width = "50%",
-        height = "40%",
-        left = "25%"
+        width = "50vw",
+        height = "40vh",
+        left = "25vw",
+        top = "10vh"
       ),
       
       
@@ -240,10 +233,10 @@ ui <- navbarPage(
                                       pattern of peaks and troughs in the trends, indicating seasonality.</p> "
             )
           ),
-          width = "55%",
-          height = "25%",
-          top = "65%",
-          left = "21%"
+          width = "55vw",
+          height = "30vh",
+          top = "65vh",
+          left = "22vw"
         )
       ),
       
@@ -260,10 +253,10 @@ ui <- navbarPage(
                                        Q2.</p> "
             )
           ),
-          width = "55%",
-          height = "25%",
-          top = "65%",
-          left = "21%"
+          width = "55vw",
+          height = "25vh",
+          top = "65vh",
+          left = "21vw"
         )
       ),
       
@@ -278,10 +271,10 @@ ui <- navbarPage(
                                        and statistical significance. This data also needs to differenced, to detrend the data..</p> "
             )
           ),
-          width = "55%",
-          height = "25%",
-          top = "65%",
-          left = "21%"
+          width = "55vw",
+          height = "25vh",
+          top = "65vh",
+          left = "21vw"
         )
       ),
       
@@ -299,10 +292,10 @@ ui <- navbarPage(
                                        explain much of the data.</p> "
             )
           ),
-          width = "55%",
-          height = "25%",
-          top = "65%",
-          left = "21%"
+          width = "55vw",
+          height = "25vh",
+          top = "65vh",
+          left = "21vw"
         )
       ),
       
@@ -320,10 +313,10 @@ ui <- navbarPage(
                                        explain much of the data.</p> "
             )
           ),
-          width = "55%",
-          height = "25%",
-          top = "65%",
-          left = "21%"
+          width = "55vw",
+          height = "25vh",
+          top = "65vh",
+          left = "21vw"
         )
       )
       
@@ -656,8 +649,8 @@ server <- function(input, output, session) {
                         <li> A interactive full plot of time series will be shown below as well as the chosen seasonal or autocorrelation
                              plot on the top right. </li>
                         <li> On the full plot click the legend names to hide it from the plot </li>
-                        <li> For more info on datasets check info tab </li> </font>
-                    **** Bottom plot is also draggable in case of overlapping ****"
+                        <li> For more info on datasets check info tab </li> </font>"
+        
       ),
       easyClose = TRUE,
       footer = NULL,
