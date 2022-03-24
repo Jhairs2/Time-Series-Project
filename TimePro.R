@@ -59,7 +59,7 @@ ui <- navbarPage(
       # User can choose between seasonal or autocorrelation plot
       radioGroupButtons(
         inputId = "plotOptions2",
-        label = "Displayed Plot",
+        label = "Type of plot (for one on right)",
         choices = c("Seasonal", "Autocorr"),
         status = "primary",
         checkIcon = list(
@@ -114,7 +114,7 @@ ui <- navbarPage(
         # User can choose between Additve or Multiplicative decomp.
         radioGroupButtons(
           inputId = "plotOptions3",
-          label = "Displayed Plot",
+          label = "Type of Decomp.",
           choices = c("Additive", "Multiplicative"),
           status = "primary",
           checkIcon = list(
@@ -156,11 +156,11 @@ ui <- navbarPage(
       "Interpretation",
       icon = icon("book"),
       fluidRow(column(
-        width = 6,  sidebarPanel(
+        width = 6, sidebarPanel(
           # User can choose what plot is shown
           radioGroupButtons(
             inputId = "plotOptions4",
-            label = "Displayed Plot",
+            label = "Type of plot",
             choices = c("Full", "Seasonal", "Autocorr", "Additive", "Multiplicative"),
             status = "primary",
             checkIcon = list(
@@ -169,7 +169,9 @@ ui <- navbarPage(
               no = icon("remove",
                         lib = "glyphicon")
             )
-          )
+          ),
+          
+          actionButton("show3", "Help")
         )
       )),
       
@@ -283,15 +285,15 @@ ui <- navbarPage(
           left = "21vw"
         )
       )
-       
+      
     )
   ),
- 
   
   # Using cyborg theme for design
   theme = shinytheme("cyborg")
-    
+   
 )
+
 
 server <- function(input, output, session) {
   # Manually putting help info, names, and sources of data sets into data table to show.
@@ -364,6 +366,7 @@ server <- function(input, output, session) {
   # Displaying seasonal and auto plots based off chosen option
   
   output$timePlot <- renderPlot({
+    require(input$data)
     switch(
       input$plotOptions2,
       Autocorr = plotData() %>%
@@ -387,6 +390,7 @@ server <- function(input, output, session) {
   # Displaying full plot
   
   output$timePlot2 <- renderPlotly({
+    require(input$data)
     plotData() %>%
       autoplot(as.ts(Info[!!input$var])) + dark_theme_light() +
       ggtitle(names[which(D$results[, "Item"] == input$data)]) +
@@ -397,6 +401,7 @@ server <- function(input, output, session) {
   
   # Displaying additive and multiplicative decomp plots based off what dataset is chosen
   output$decomp <- renderPlotly({
+    require(input$data2)
     if (input$plotOptions3 == "Additive") {
       switch(
         input$data2,
@@ -589,7 +594,7 @@ server <- function(input, output, session) {
   
   
   
-  # Outputting plot based off users choice for interpretations tab
+  # Outputting plot based off Users choice for interpretations
   
   output$test <- renderPlot({
     switch (
@@ -667,6 +672,24 @@ server <- function(input, output, session) {
                       <li> Click the legend names to hide it from the plot </li>
                       <li> For more info on datasets check info tab </li></font>
                       **** Y variables are already chosen for each decomp **** "
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
+  })
+  
+  
+  observeEvent(input$show3, {
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>  This tab is made to show interpretations on the aus_arrival dataset from the
+                          fpp3 package. There will be an interpretation done on the full, seasonal, autocorrelation,
+                          additive decomp., and multiplicative decomp. plots of the time series. To see the different
+                          interpretations and plots, just click on one of the button choices.</font>"
+        
       ),
       easyClose = TRUE,
       footer = NULL,
