@@ -8,50 +8,10 @@ library(shinycustomloader)
 library(plotly)
 library(shinyWidgets)
 
-# Getting time series datasets from fpp3 package
+# Getting time series datasets from fpp3 package and the names of the datasets I want
 D <- data(package = "fpp3")
 names <- D$results[, "Title"]
 dataSet <- D$results[, "Item"]
-TimeSeries <-
-  c(
-    "aus_accommodation",
-    "aus_arrivals",
-    "canadian_gas",
-    "insurance",
-    "souvenirs",
-    "us_change",
-    "us_gasoline"
-  )
-Description <- c(
-  "aus_accommodation is a quarterly 'tsibble' containing data on Australian tourist accommodation from short-term non-residential
-  accommodation with 15 or more rooms, 1998 Q1 - 2016 Q2. The data set also contains the Australian Consumer Price Index (CPI) for the same period.
-  Takings are in millions of Australian dollars, Occupancy is a percentage of rooms occupied, CPI is an index with value 100 in 2012 Q1.
-",
-  "Quarterly international arrivals to Australia from Japan, New Zealand, UK and the US. 1981Q1 - 2012Q3.",
-  
-  "Monthly Canadian gas production, billions of cubic metres, January 1960 - February 2005",
-  
-  "Monthly quotations and monthly television advertising expenditure for a US insurance company. January 2002 to April 2005",
-  
-  "Monthly sales for a souvenir shop on the wharf at a beach resort town in Queensland, Australia.",
-  
-  "us_change is a quarterly 'tsibble' containing percentage changes in quarterly personal consumption expenditure, personal disposable
-  income, production, savings and the unemployment rate for the US, 1970 to 2016. Original $ values were in chained 2012 US dollars.",
-  
-  "Weekly data beginning Week 6, 1991, ending Week 3, 2017. Units are 'million barrels per day'."
-)
-Source <-
-  c(
-    "Australian Bureau of Statistics, Cat No 8635.0, Table 10, and Cat No 6401.0, Table 1.",
-    "Tourism Research Australia.",
-    "Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential
-            smoothing: the state space approach, Springer.",
-    "Kindly provided by Dave Reilly, Automatic Forecasting Systems.",
-    "Makridakis, Wheelwright and Hyndman (1998) *Forecasting: methods and applications*,
-            John Wiley & Sons: New York. Exercise 5.8.",
-    "Federal Reserve Bank of St Louis.",
-    "US Energy Information Administration."
-  )
 Names <- names[c(1, 3, 6, 8, 10, 11, 13)]
 
 
@@ -62,7 +22,7 @@ ui <- navbarPage(
   # Creating Home tab, and inserted a background image and title
   tabPanel(
     "Home",
-    
+    # Adding title and background image for home page
     absolutePanel(
       HTML("<h1> Time Series Analysis Project
          <br> by Justin Hairston </h1>"),
@@ -83,12 +43,12 @@ ui <- navbarPage(
   tabPanel(
     "Plots",
     
-    # User will select a data
+    # User will select a dataset
     sidebarPanel(
       selectizeInput("data", label = "Select a Dataframe",
                      choices = dataSet[c(1, 3, 6, 8, 10, 11, 13)]),
       
-      # User will select a why variable
+      # User will select a y variable
       pickerInput(
         inputId = 'var',
         label = 'Y Variable',
@@ -111,11 +71,11 @@ ui <- navbarPage(
       ),
       
       
-      
+      # User can click here for instructions
       actionButton("show", "Help")
     ),
     
-    # Plots will be displayed with dna loaders
+    # Plots will be displayed with dna loaders and manually positioned and sized
     absolutePanel(
       withLoader(plotOutput("timePlot"), type = "html",
                  loader = "dnaspin"),
@@ -141,7 +101,7 @@ ui <- navbarPage(
     icon = icon("fas fa-chart-bar")
   ),
   
-  # tab for creating  decompostion plots for pre-selected variables
+  # tab for creating  decompostion plots for pre-selected y variables
   tabPanel(
     "Decomposition",
     
@@ -150,6 +110,8 @@ ui <- navbarPage(
       sidebarPanel(
         selectizeInput("data2", label = "Select a Dataframe",
                        choices = dataSet[c(1, 3, 6, 8, 10, 13)]),
+        
+        # User can choose between Additve or Multiplicative decomp.
         radioGroupButtons(
           inputId = "plotOptions3",
           label = "Displayed Plot",
@@ -177,11 +139,11 @@ ui <- navbarPage(
   ),
   
   # Other menu options
-  
   navbarMenu(
     "Info",
     icon = icon("far fa-info-circle"),
     
+    # Info about data sets will be shown here
     tabPanel(
       "Dataset Info",
       icon = icon("fas fa-database"),
@@ -189,12 +151,13 @@ ui <- navbarPage(
     ),
     
     "----",
-    
+    # Interpretations for aus_arrival dataset will be shown here
     tabPanel(
       "Interpretation",
       icon = icon("book"),
       fluidRow(column(
         width = 6,  sidebarPanel(
+          # User can choose what plot is shown
           radioGroupButtons(
             inputId = "plotOptions4",
             label = "Displayed Plot",
@@ -210,6 +173,7 @@ ui <- navbarPage(
         )
       )),
       
+      # plot data for interpretations will be shown and positioned in middle
       absolutePanel(
         withLoader(type = "html", loader = "dnaspin", plotOutput("test")),
         br(),
@@ -220,7 +184,7 @@ ui <- navbarPage(
         top = "10vh"
       ),
       
-      
+      # text will be generated using raw HTML and interpretations will change based off of what plot is chosen
       conditionalPanel(
         condition = "input.plotOptions4 == 'Full'",
         absolutePanel(
@@ -332,7 +296,7 @@ ui <- navbarPage(
   
   
   
-  
+  # Using cyborg theme for design
   theme = shinytheme("cyborg")
   
   
@@ -340,7 +304,49 @@ ui <- navbarPage(
 
 
 server <- function(input, output, session) {
+  # Manually putting help info, names, and sources of data sets into data table to show.
   output$moreInfo <- renderDataTable({
+    TimeSeries <-
+      c(
+        "aus_accommodation",
+        "aus_arrivals",
+        "canadian_gas",
+        "insurance",
+        "souvenirs",
+        "us_change",
+        "us_gasoline"
+      )
+    Description <- c(
+      "aus_accommodation is a quarterly 'tsibble' containing data on Australian tourist accommodation from short-term non-residential
+  accommodation with 15 or more rooms, 1998 Q1 - 2016 Q2. The data set also contains the Australian Consumer Price Index (CPI) for the same period.
+  Takings are in millions of Australian dollars, Occupancy is a percentage of rooms occupied, CPI is an index with value 100 in 2012 Q1.
+",
+      "Quarterly international arrivals to Australia from Japan, New Zealand, UK and the US. 1981Q1 - 2012Q3.",
+      
+      "Monthly Canadian gas production, billions of cubic metres, January 1960 - February 2005",
+      
+      "Monthly quotations and monthly television advertising expenditure for a US insurance company. January 2002 to April 2005",
+      
+      "Monthly sales for a souvenir shop on the wharf at a beach resort town in Queensland, Australia.",
+      
+      "us_change is a quarterly 'tsibble' containing percentage changes in quarterly personal consumption expenditure, personal disposable
+  income, production, savings and the unemployment rate for the US, 1970 to 2016. Original $ values were in chained 2012 US dollars.",
+      
+      "Weekly data beginning Week 6, 1991, ending Week 3, 2017. Units are 'million barrels per day'."
+    )
+    Source <-
+      c(
+        "Australian Bureau of Statistics, Cat No 8635.0, Table 10, and Cat No 6401.0, Table 1.",
+        "Tourism Research Australia.",
+        "Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential
+            smoothing: the state space approach, Springer.",
+        "Kindly provided by Dave Reilly, Automatic Forecasting Systems.",
+        "Makridakis, Wheelwright and Hyndman (1998) *Forecasting: methods and applications*,
+            John Wiley & Sons: New York. Exercise 5.8.",
+        "Federal Reserve Bank of St Louis.",
+        "US Energy Information Administration."
+      )
+    
     dataInfo <- data.frame(Names, TimeSeries, Description, Source)
     dataInfo
   })
@@ -593,7 +599,7 @@ server <- function(input, output, session) {
   
   
   
-  
+  # Outputting plot based of Users choice for interpretations
   
   output$test <- renderPlot({
     switch (
@@ -638,7 +644,7 @@ server <- function(input, output, session) {
   })
   
   
-  
+  # Showing instructions for plot page
   observeEvent(input$show, {
     showModal(modalDialog(
       title = "Instructions",
@@ -658,7 +664,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  
+  # Showing instructions for decomposition page
   observeEvent(input$show2, {
     showModal(modalDialog(
       title = "Instructions",
