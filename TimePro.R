@@ -12,7 +12,6 @@ library(shinyWidgets)
 D <- data(package = "fpp3")
 names <- D$results[, "Title"]
 dataSet <- D$results[, "Item"]
-
 TimeSeries <-
   c(
     "aus_accommodation",
@@ -54,8 +53,7 @@ Source <-
     "US Energy Information Administration."
   )
 Names <- names[c(1, 3, 6, 8, 10, 11, 13)]
-dataInfo <- data.frame(Names, TimeSeries, Description, Source)
-
+page <- "a"
 
 
 ui <- navbarPage(
@@ -66,7 +64,7 @@ ui <- navbarPage(
     "Home",
     
     absolutePanel(
-      HTML("<h1> Time Series Analysis App
+      HTML("<h1> Time Series Analysis Project
          <br> by Justin Hairston </h1>"),
       top = "25%",
       left = "5%"
@@ -177,17 +175,169 @@ ui <- navbarPage(
     icon = icon("fas fa-chart-line")
   ),
   
-  
-  tabPanel("Interpretations", icon = icon("book")),
   # Other menu options
+  
   navbarMenu(
     "Info",
     icon = icon("far fa-info-circle"),
     
-    tabPanel("Dataset Info", icon = icon("fas fa-database"),
-             dataTableOutput("x"))
+    tabPanel(
+      "Dataset Info",
+      icon = icon("fas fa-database"),
+      dataTableOutput("moreInfo")
+    ),
     
+    "----",
+    
+    tabPanel(
+      "Interpretation",
+      icon = icon("book"),
+      
+      tags$div(
+        HTML(
+          "<center><h2>Analysis</h2></center>
+                <center> This analysis is done on the aus_arrivals dataset.</center>"
+        )
+      ),
+      
+      br(),
+      br(),
+      
+      absolutePanel(
+        withLoader(type = "html", loader = "dnaspin", plotOutput("test")),
+        br(),
+        absolutePanel(
+          radioGroupButtons(
+            inputId = "plotOptions4",
+            label = "Displayed Plot",
+            choices = c("Full", "Seasonal", "Autocorr", "Additive", "Multiplicative"),
+            status = "primary",
+            checkIcon = list(
+              yes = icon("ok",
+                         lib = "glyphicon"),
+              no = icon("remove",
+                        lib = "glyphicon")
+            )
+          ),
+          left = "25%"
+        ),
+        
+        width = "50%",
+        height = "40%",
+        left = "25%"
+      ),
+      
+      
+      conditionalPanel(
+        condition = "input.plotOptions4 == 'Full'",
+        absolutePanel(
+          tags$div(
+            HTML(
+              "
+               <font size =+2> <br> <center><strong> Full Plot Interpretation </strong> </center>
+                <br> <p align = left> The full plot shows that Australia is seeing an upward trend of travelers coming from the U.S., NZ, and
+                      the UK, but there seems to be a sharp decreasing trend in travelers from Japan. There also appears to be a very consistent
+                                      pattern of peaks and troughs in the trends, indicating seasonality.</p> "
+            )
+          ),
+          width = "55%",
+          height = "25%",
+          top = "65%",
+          left = "21%"
+        )
+      ),
+      
+      conditionalPanel(
+        condition = "input.plotOptions4 == 'Seasonal'",
+        absolutePanel(
+          tags$div(
+            HTML(
+              "
+               <font size =+2> <br> <center><strong> Seasonal Plot Interpretation </strong> </center>
+                <br> <p align = left> The seasonal plot shows that travelers coming from the UK follow a seasonal pattern, where more
+                                       travelers arrive to Australia in Q1 and then it slows down during Q2-Q3,
+                                       then picks back up in Q4. Japan also shows some slight seasonal patterns, with it slowing down during
+                                       Q2.</p> "
+            )
+          ),
+          width = "55%",
+          height = "25%",
+          top = "65%",
+          left = "21%"
+        )
+      ),
+      
+      conditionalPanel(
+        condition = "input.plotOptions4 == 'Autocorr'",
+        absolutePanel(
+          tags$div(
+            HTML(
+              "
+               <font size =+2> <br> <center><strong> AutoCorrelation Plot Interpretation </strong> </center>
+                <br> <p align = left> The lags for each of the countries are all very high in the positive direction, indicating large positve correlation
+                                       and statistical significance. This data also needs to differenced, to detrend the data..</p> "
+            )
+          ),
+          width = "55%",
+          height = "25%",
+          top = "65%",
+          left = "21%"
+        )
+      ),
+      
+      conditionalPanel(
+        condition = "input.plotOptions4 == 'Additive'",
+        absolutePanel(
+          tags$div(
+            HTML(
+              "
+               <font size =+2> <br> <center><strong> Additive Decomp. Plot Interpretation </strong> </center>
+                <br> <p align = left> The trend plot shows that each country except Japan seem to be following a positive trend. The bar on the side
+                                       is pretty small indicating that the trend plot explains a large amount of the data. The seasonal plot shows strong
+                                       seasonality in each of the countries and the bar is very big, indicating that seasonality doesn't explain much of
+                                       the data. The remainder seems to follow a random pattern indicating white noise. It also has a large bar, so it doesn't
+                                       explain much of the data.</p> "
+            )
+          ),
+          width = "55%",
+          height = "25%",
+          top = "65%",
+          left = "21%"
+        )
+      ),
+      
+      conditionalPanel(
+        condition = "input.plotOptions4 == 'Multiplicative'",
+        absolutePanel(
+          tags$div(
+            HTML(
+              "
+               <font size =+2> <br> <center><strong> Multiplicative Decomp. Plot Interpretation </strong> </center>
+                <br> <p align = left>  The trend plot shows that NZ is the only country trending upwards while the rest are all trending down. The bar is not visible,
+                                        meaning the trend plot must explain a great deal of the data. The seasonal plot much like the additive decomp. shows very strong
+                                       seasonality in each of the countries, especially the UK, and the bar is very big, indicating that seasonality doesn't explain much of
+                                       the data. The remainder also seems to follow a random pattern indicating white noise. It also has a large bar, so it doesn't
+                                       explain much of the data.</p> "
+            )
+          ),
+          width = "55%",
+          height = "25%",
+          top = "65%",
+          left = "21%"
+        )
+      )
+      
+      
+      
+      
+      
+      
+    )
   ),
+  
+  
+  
+  
   
   
   theme = shinytheme("cyborg")
@@ -197,6 +347,11 @@ ui <- navbarPage(
 
 
 server <- function(input, output, session) {
+  output$moreInfo <- renderDataTable({
+    dataInfo <- data.frame(Names, TimeSeries, Description, Source)
+    dataInfo
+  })
+  
   # Getting data for full, seasonal, autocorr. plots
   plotData <- eventReactive(input$data, {
     Info <<- get(input$data)
@@ -237,7 +392,6 @@ server <- function(input, output, session) {
         theme(plot.title = element_text(hjust = 0.5)) +
         labs(y = input$var)
     )
-    
     
   })
   
@@ -444,9 +598,53 @@ server <- function(input, output, session) {
     }
   })
   
-  output$x <- renderDataTable({
-    dataInfo
+  
+  
+  
+  
+  output$test <- renderPlot({
+    switch (
+      input$plotOptions4,
+      
+      
+      Full = aus_arrivals %>%
+        autoplot(Arrivals) + dark_theme_light() +
+        ggtitle(Names[2]) +
+        theme(plot.title = element_text(hjust = 0.5)),
+      
+      
+      
+      Seasonal = aus_arrivals %>%
+        gg_season(Arrivals) + dark_theme_light() +
+        ggtitle(Names[2]) +
+        theme(plot.title = element_text(hjust = 0.5)),
+      
+      Autocorr = aus_arrivals %>%
+        ACF(Arrivals) %>%
+        autoplot() + dark_theme_light() +
+        ggtitle(Names[2]) +
+        theme(plot.title = element_text(hjust = 0.5)),
+      
+      Additive = aus_arrivals  %>%
+        model (classical_decomposition(Arrivals, type = "additive")) %>%
+        components() %>%
+        autoplot() + dark_theme_light() +
+        ggtitle(paste("Additive Decomp for",
+                      Names[2])),
+      
+      Multiplicative =  aus_arrivals  %>%
+        model (
+          classical_decomposition(Arrivals, type = "multiplicative")
+        ) %>%
+        components() %>%
+        autoplot() + dark_theme_light() +
+        ggtitle(paste("Multiplicative Decomp for",
+                      Names[2]))
+      
+    )
   })
+  
+  
   
   observeEvent(input$show, {
     showModal(modalDialog(
@@ -474,7 +672,6 @@ server <- function(input, output, session) {
       
       HTML(
         "<font size=+1>
-
                       <li> Select a time series from the list </li>
                       <li> Choose what type of Decomp. plot you want </li>
                       <li> A interactive Decomp. plot of the series will be displayed below. </li>
@@ -487,6 +684,9 @@ server <- function(input, output, session) {
       fade = T
     ))
   })
+  
+  
 }
+
 
 shinyApp(ui, server)
