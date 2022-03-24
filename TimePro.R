@@ -599,7 +599,7 @@ server <- function(input, output, session) {
   
   
   
-  # Outputting plot based of Users choice for interpretations
+  # Outputting plot based off users choice for interpretations tab
   
   output$test <- renderPlot({
     switch (
