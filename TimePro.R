@@ -283,25 +283,15 @@ ui <- navbarPage(
           left = "21vw"
         )
       )
-      
-      
-      
-      
-      
-      
+       
     )
   ),
-  
-  
-  
-  
+ 
   
   # Using cyborg theme for design
   theme = shinytheme("cyborg")
-  
-  
+    
 )
-
 
 server <- function(input, output, session) {
   # Manually putting help info, names, and sources of data sets into data table to show.
