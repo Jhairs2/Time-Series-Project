@@ -215,8 +215,8 @@ ui <- navbarPage(
                <font size =+2> <br> <center><strong> Seasonal Plot Interpretation </strong> </center>
                 <br> <p align = left> The seasonal plot shows that travelers coming from the UK follow a seasonal pattern, where more
                                        travelers arrive to Australia in Q1 and then it slows down during Q2-Q3,
-                                       then picks back up in Q4. Japan also shows some slight seasonal patterns, with it slowing down during
-                                       Q2.</p> "
+                                       then picks back up in Q4. Japan and the U.S. also show some slight seasonal patterns, with them slowing down during
+                                       Q2. NZ seems to slow down during Q1 and then pick back up for the rest of the year. </p> "
             )
           ),
           width = "55vw",
@@ -233,8 +233,9 @@ ui <- navbarPage(
             HTML(
               "
                <font size =+2> <br> <center><strong> AutoCorrelation Plot Interpretation </strong> </center>
-                <br> <p align = left> The lags for each of the countries are all very high in the positive direction, indicating large positve correlation
-                                       and statistical significance. This data also needs to differenced, to detrend the data..</p> "
+                <br> <p align = left> The lags for each of the countries are all very high in the positive direction, indicating large positve correlations
+                                       and statistical significance. This is most likely due to the strong trends and seasonal patterns in the data.
+                                      This data will most likely need to be differenced, to detrend the data and take a closer look.</p> "
             )
           ),
           width = "55vw",
@@ -286,12 +287,22 @@ ui <- navbarPage(
         )
       )
       
+      
+      
+      
+      
+      
     )
   ),
   
+  
+  
+  
+  
   # Using cyborg theme for design
   theme = shinytheme("cyborg")
-   
+  
+  
 )
 
 
@@ -594,7 +605,7 @@ server <- function(input, output, session) {
   
   
   
-  # Outputting plot based off Users choice for interpretations
+  # Outputting plot based of Users choice for interpretations
   
   output$test <- renderPlot({
     switch (
