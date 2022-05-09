@@ -41,7 +41,7 @@ ui <- navbarPage(
   ),
   # Creating panel for viewing full, seasonal, and autocorrelation plots
   tabPanel(
-    "Plots",
+    "Time Plots",
     
     # User will select a dataset
     sidebarPanel(
@@ -58,7 +58,7 @@ ui <- navbarPage(
       
       # User can choose between seasonal or autocorrelation plot
       radioGroupButtons(
-        inputId = "plotOptions2",
+        inputId = "plotOptions",
         label = "Type of plot (for one on right)",
         choices = c("Seasonal", "Autocorr"),
         status = "primary",
@@ -113,7 +113,7 @@ ui <- navbarPage(
         
         # User can choose between Additve or Multiplicative decomp.
         radioGroupButtons(
-          inputId = "plotOptions3",
+          inputId = "plotOptions2",
           label = "Type of Decomp.",
           choices = c("Additive", "Multiplicative"),
           status = "primary",
@@ -144,12 +144,18 @@ ui <- navbarPage(
              width = 6,
              sidebarPanel(
                
+               selectizeInput("data3", label = "Simple Forecasts",
+                              choices = c("Naive", "Seasonal Naive", "Mean", "Drift", "ETS-HOLTS", "ETS-HOLTS/WINTER")),
+              
+               actionButton("runForecast", "Run Forecast"),
                
-               # User can choose between Additve or Multiplicative decomp.
+               br(),
+               br(),
+               
                radioGroupButtons(
-                 inputId = "plotOptions5",
-                 label = "Type of forecasts",
-                 choices = c("Naive", "Seasonal_Naive", "Mean", "Drift", "HOLTS", "HOLTS(WINTER)", "AutoArima"),
+                 inputId = "plotOptions3",
+                 label = "Select Forecasts Types",
+                 choices = c("Simple", "ARIMA"),
                  status = "primary",
                  checkIcon = list(
                    yes = icon("ok",
@@ -159,7 +165,7 @@ ui <- navbarPage(
                  )
                ),
                
-               actionButton("show4", "Help")
+               actionButton("show3", "Help")
              )
            ),
            
@@ -208,13 +214,13 @@ ui <- navbarPage(
             )
           ),
           
-          actionButton("show3", "Help")
+          actionButton("show4", "Help")
         )
       )),
       
       # plot data for interpretations will be shown and positioned in middle
       absolutePanel(
-        withLoader(type = "html", loader = "dnaspin", plotOutput("test")),
+        withLoader(type = "html", loader = "dnaspin", plotOutput("interpretatedPlots")),
         br(),
         
         width = "50vw",
@@ -411,13 +417,30 @@ server <- function(input, output, session) {
     )
     
   })
+  
+  
+  observeEvent (input$plotOptions3, {
+    
+    if(input$plotOptions3 == "ARIMA") {
+    updateSelectizeInput(session, "data3", label = "ARIMA Forecasts",
+                   choices = c("White Noise(Non-seasonal)", "Random Walk(Non-seasonal)","Random Walk(Seasonal)",
+                               "Auto Arima"), 
+                   server = T)
+    } 
+    
+    else {
+      updateSelectizeInput(session, "data3", label = "Simple Forecasts",
+                               choices = c("Naive", "Seasonal Naive", "Mean", "Drift", "ETS-HOLTS", "ETS-HOLTS/WINTER"),
+                               server = T)
+      }
+  })
 
   # Displaying seasonal and auto plots based off chosen option
   
   output$timePlot <- renderPlot({
     require(input$data)
     switch(
-      input$plotOptions2,
+      input$plotOptions,
       Autocorr = plotData() %>%
         ACF(Info[!!input$var]) %>%
         autoplot() + dark_theme_light() +
@@ -451,7 +474,7 @@ server <- function(input, output, session) {
   # Displaying additive and multiplicative decomp plots based off what dataset is chosen
   output$decomp <- renderPlotly({
     require(input$data2)
-    if (input$plotOptions3 == "Additive") {
+    if (input$plotOptions2 == "Additive") {
       switch(
         input$data2,
         
@@ -641,11 +664,140 @@ server <- function(input, output, session) {
     }
   })
   
+  runButton <- eventReactive(input$runForecast, {
+    input$data3
+  })
   
+  
+  output$predictionModel <- renderPlot({
+    
+    if(input$plotOptions3 == "Simple") {
+      switch (
+      runButton(),
+      
+      Naive = aus_arrivals %>%
+        model(NAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Seasonal_Naive = aus_arrivals %>%
+        model(SNAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Mean = aus_arrivals %>%
+        model(MEAN(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Drift = aus_arrivals %>%
+        model(RW(Arrivals~drift())) %>%
+        forecast(h = 5) ->> fc,
+      
+      "ETS-HOLTS" = aus_arrivals %>%
+        model(ETS(Arrivals~trend())) %>%
+        forecast(h = 5) ->> fc,
+      
+      "ETS-HOLTS/WINTER" = aus_arrivals %>%
+        model(ETS(Arrivals~trend() + season())) %>%
+        forecast(h = 5) ->> fc
+    )
+    } 
+    
+    else {
+      switch (
+        runButton(),
+        
+        "White Noise(Non-seasonal)" =  aus_arrivals %>%
+          model(ARIMA(Arrivals~ pdq(0,0,0))) %>%
+          forecast(h = 5) ->> fc,
+        
+        "Random Walk(Non-seasonal)" = aus_arrivals %>%
+          model(ARIMA(Arrivals~ pdq(0,1,0))) %>%
+          forecast(h = 5) ->> fc,
+        
+        "Random Walk(Seasonal)" = aus_arrivals %>%
+          model(ARIMA(Arrivals~ pdq(0,1,0) + PDQ(0,1,0))) %>%
+          forecast(h = 5) ->> fc,
+       
+        
+        "Auto Arima" = aus_arrivals %>%
+          model(ARIMA(Arrivals, stepwise = FALSE)) %>%
+          forecast(h = 5) ->> fc
+      )
+    }
+    
+    
+    aus_arrivals %>%
+      autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
+      ggtitle(paste(Names[2], "With Forecasts")) +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
+  
+  
+  output$predictionModel2 <- renderPlot({
+    
+    if(input$plotOptions3 == "Simple") {
+      
+      switch (
+      runButton(),
+      
+      Naive = aus_arrivals %>%
+        model(NAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Seasonal_Naive = aus_arrivals %>%
+        model(SNAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Mean = aus_arrivals %>%
+        model(MEAN(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Drift = aus_arrivals %>%
+        model(RW(Arrivals~drift())) %>%
+        forecast(h = 5) ->> fc,
+      
+      HOLTS = aus_arrivals %>%
+        model(ETS(Arrivals~trend())) %>%
+        forecast(h = 5) ->> fc,
+      
+      "HOLTS(WINTER)" = aus_arrivals %>%
+        model(ETS(Arrivals~trend() + season())) %>%
+        forecast(h = 5) ->> fc
+      )
+    } 
+    
+    else {
+      switch (
+        runButton(),
+        
+        "White Noise(Non-seasonal)" =  aus_arrivals %>%
+          model(ARIMA(Arrivals~ pdq(0,0,0))) %>%
+          forecast(h = 5) ->> fc,
+        
+        "Random Walk(Non-seasonal)" = aus_arrivals %>%
+          model(ARIMA(Arrivals~ pdq(0,1,0))) %>%
+          forecast(h = 5) ->> fc,
+        
+        "Random Walk(Seasonal)" = aus_arrivals %>%
+          model(ARIMA(Arrivals~ pdq(0,1,0) + PDQ(0,1,0))) %>%
+          forecast(h = 5) ->> fc,
+        
+        "Auto Arima" = aus_arrivals %>%
+          model(ARIMA(Arrivals, stepwise = FALSE)) %>%
+          forecast(h = 5) ->> fc
+      )
+    }
+    
+    fc %>% 
+      autoplot() + dark_theme_light() +
+      ggtitle(paste("Forecasts for",Names[2])) +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
   
   # Outputting plot based of Users choice for interpretations
   
-  output$test <- renderPlot({
+  output$interpretatedPlots <- renderPlot({
     switch (
       input$plotOptions4,
       
@@ -685,88 +837,6 @@ server <- function(input, output, session) {
                       Names[2]))
       
     )
-  })
-  
-  output$predictionModel <- renderPlot({
-    switch (
-      input$plotOptions5,
-      
-      Naive = aus_arrivals %>%
-        model(NAIVE(Arrivals)) %>%
-        forecast(h = 5) ->> fc,
-      
-      Seasonal_Naive = aus_arrivals %>%
-        model(SNAIVE(Arrivals)) %>%
-        forecast(h = 5) ->> fc,
-      
-      Mean = aus_arrivals %>%
-        model(MEAN(Arrivals)) %>%
-        forecast(h = 5) ->> fc,
-      
-      Drift = aus_arrivals %>%
-        model(RW(Arrivals~drift())) %>%
-        forecast(h = 5) ->> fc,
-      
-      HOLTS = aus_arrivals %>%
-        model(ETS(Arrivals~trend())) %>%
-        forecast(h = 5) ->> fc,
-      
-      "HOLTS(WINTER)" = aus_arrivals %>%
-        model(ETS(Arrivals~trend() + season())) %>%
-        forecast(h = 5) ->> fc,
-      
-       AutoArima = aus_arrivals %>%
-        model(ARIMA(Arrivals, stepwise = FALSE)) %>%
-      forecast(h = 5) ->> fc
-    )
-    
-    aus_arrivals %>%
-      autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[2], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-    
-  })
-  
-  
-  output$predictionModel2 <- renderPlot({
-    switch (
-      input$plotOptions5,
-      
-      Naive = aus_arrivals %>%
-        model(NAIVE(Arrivals)) %>%
-        forecast(h = 5) ->> fc,
-      
-      Seasonal_Naive = aus_arrivals %>%
-        model(SNAIVE(Arrivals)) %>%
-        forecast(h = 5) ->> fc,
-      
-      Mean = aus_arrivals %>%
-        model(MEAN(Arrivals)) %>%
-        forecast(h = 5) ->> fc,
-      
-      Drift = aus_arrivals %>%
-        model(RW(Arrivals~drift())) %>%
-        forecast(h = 5) ->> fc,
-      
-      HOLTS = aus_arrivals %>%
-        model(ETS(Arrivals~trend())) %>%
-        forecast(h = 5) ->> fc,
-      
-      "HOLTS(WINTER)" = aus_arrivals %>%
-        model(ETS(Arrivals~trend() + season())) %>%
-        forecast(h = 5) ->> fc,
-      
-      
-       AutoArima = aus_arrivals %>%
-        model(ARIMA(Arrivals, stepwise = FALSE)) %>%
-        forecast(h = 5) ->> fc
-    )
-    
-    fc %>% 
-      autoplot() + dark_theme_light() +
-      ggtitle(paste("Forecasts for",Names[2])) +
-      theme(plot.title = element_text(hjust = 0.5))
-    
   })
   
   
@@ -810,8 +880,26 @@ server <- function(input, output, session) {
     ))
   })
   
-  
   observeEvent(input$show3, {
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>  This tab is made to show forecasts on the aus_arrival dataset from the
+                          fpp3 package. Choose whether you want to look at simple forecasts models or ARIMA forecasts models.
+                          Then, choose one of the models you would like to use and click Run Forecast. Once Run Forecast is clicked,
+                          there will be two plots shown below: the top plot, which shows the original data and forecasted data together, and
+                          the bottom plot, which shows the forecasted data only. In the ARIMA section,
+                          Auto ARIMA might take a while to load. All forecasts are predicting the next 5 quarters.</font>"
+        
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
+  })
+  
+  observeEvent(input$show4, {
     showModal(modalDialog(
       title = "Instructions",
       
@@ -835,6 +923,4 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 
-       
-      
 
