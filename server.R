@@ -68,7 +68,7 @@ server <- function(input, output, session) {
         
     })
     
-    
+    # Menu will change on forecasting tab based of selected forecasts type
     observeEvent (input$plotOptions3, {
         if (input$plotOptions3 == "ARIMA") {
             updateSelectizeInput(
@@ -344,11 +344,12 @@ server <- function(input, output, session) {
         }
     })
     
+    #Creating button for running forecasts
     runButton <- eventReactive(input$runForecast, {
         input$data3
     })
     
-    
+    #Forcasts will be created and plotted 
     output$predictionModel <- renderPlot({
         if (input$plotOptions3 == "Simple") {
             switch (

@@ -138,6 +138,7 @@ ui <- navbarPage(
         icon = icon("fas fa-chart-line")
     ),
     
+    # Tab for forecasting on datasets
     tabPanel(
         "Forecasting",
         
