@@ -138,6 +138,43 @@ ui <- navbarPage(
     icon = icon("fas fa-chart-line")
   ),
   
+  tabPanel("Forecasting",
+           
+           fluidRow(
+             width = 6,
+             sidebarPanel(
+               
+               
+               # User can choose between Additve or Multiplicative decomp.
+               radioGroupButtons(
+                 inputId = "plotOptions5",
+                 label = "Type of forecasts",
+                 choices = c("Naive", "Seasonal_Naive", "Mean", "Drift", "HOLTS", "HOLTS(WINTER)", "AutoArima"),
+                 status = "primary",
+                 checkIcon = list(
+                   yes = icon("ok",
+                              lib = "glyphicon"),
+                   no = icon("remove",
+                             lib = "glyphicon")
+                 )
+               ),
+               
+               actionButton("show4", "Help")
+             )
+           ),
+           
+           
+           withLoader(type = "html",
+                      loader = "dnaspin",
+                      
+                      plotOutput("predictionModel")),
+           
+           withLoader(type = "html",
+                      loader = "dnaspin",
+                      
+                      plotOutput("predictionModel2"))
+           ),
+  
   # Other menu options
   navbarMenu(
     "Info",
@@ -362,6 +399,7 @@ server <- function(input, output, session) {
   plotData2 <<- eventReactive(input$data2, {
     Info2 <<- get(input$data2)
   })
+
   
   # updating variable choices for input
   observeEvent(plotData(), {
@@ -373,7 +411,7 @@ server <- function(input, output, session) {
     )
     
   })
-  
+
   # Displaying seasonal and auto plots based off chosen option
   
   output$timePlot <- renderPlot({
@@ -649,6 +687,88 @@ server <- function(input, output, session) {
     )
   })
   
+  output$predictionModel <- renderPlot({
+    switch (
+      input$plotOptions5,
+      
+      Naive = aus_arrivals %>%
+        model(NAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Seasonal_Naive = aus_arrivals %>%
+        model(SNAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Mean = aus_arrivals %>%
+        model(MEAN(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Drift = aus_arrivals %>%
+        model(RW(Arrivals~drift())) %>%
+        forecast(h = 5) ->> fc,
+      
+      HOLTS = aus_arrivals %>%
+        model(ETS(Arrivals~trend())) %>%
+        forecast(h = 5) ->> fc,
+      
+      "HOLTS(WINTER)" = aus_arrivals %>%
+        model(ETS(Arrivals~trend() + season())) %>%
+        forecast(h = 5) ->> fc,
+      
+       AutoArima = aus_arrivals %>%
+        model(ARIMA(Arrivals, stepwise = FALSE)) %>%
+      forecast(h = 5) ->> fc
+    )
+    
+    aus_arrivals %>%
+      autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
+      ggtitle(paste(Names[2], "With Forecasts")) +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
+  
+  
+  output$predictionModel2 <- renderPlot({
+    switch (
+      input$plotOptions5,
+      
+      Naive = aus_arrivals %>%
+        model(NAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Seasonal_Naive = aus_arrivals %>%
+        model(SNAIVE(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Mean = aus_arrivals %>%
+        model(MEAN(Arrivals)) %>%
+        forecast(h = 5) ->> fc,
+      
+      Drift = aus_arrivals %>%
+        model(RW(Arrivals~drift())) %>%
+        forecast(h = 5) ->> fc,
+      
+      HOLTS = aus_arrivals %>%
+        model(ETS(Arrivals~trend())) %>%
+        forecast(h = 5) ->> fc,
+      
+      "HOLTS(WINTER)" = aus_arrivals %>%
+        model(ETS(Arrivals~trend() + season())) %>%
+        forecast(h = 5) ->> fc,
+      
+      
+       AutoArima = aus_arrivals %>%
+        model(ARIMA(Arrivals, stepwise = FALSE)) %>%
+        forecast(h = 5) ->> fc
+    )
+    
+    fc %>% 
+      autoplot() + dark_theme_light() +
+      ggtitle(paste("Forecasts for",Names[2])) +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
+  
   
   # Showing instructions for plot page
   observeEvent(input$show, {
@@ -712,4 +832,9 @@ server <- function(input, output, session) {
 }
 
 
+
 shinyApp(ui, server)
+
+       
+      
+
