@@ -147,9 +147,7 @@ server <- function(input, output, session) {
         input$data2,
         
         aus_accommodation = plotData2() %>%
-          model (
-            classical_decomposition(Takings, type = "additive")
-          ) %>%
+          model (classical_decomposition(Takings, type = "additive")) %>%
           components() %>%
           autoplot() + dark_theme_light() +
           ggtitle(
@@ -163,9 +161,7 @@ server <- function(input, output, session) {
           labs(y = "Takings"),
         
         aus_arrivals = plotData2() %>%
-          model (
-            classical_decomposition(Arrivals, type = "additive")
-          ) %>%
+          model (classical_decomposition(Arrivals, type = "additive")) %>%
           components() %>%
           autoplot() + dark_theme_light() +
           ggtitle(
@@ -179,9 +175,7 @@ server <- function(input, output, session) {
           labs(y  = "Arrivals"),
         
         canadian_gas = plotData2() %>%
-          model (
-            classical_decomposition(Volume, type = "additive")
-          ) %>%
+          model (classical_decomposition(Volume, type = "additive")) %>%
           components() %>%
           autoplot() + dark_theme_light() +
           ggtitle(
@@ -195,9 +189,7 @@ server <- function(input, output, session) {
           labs(y  = "Volumes"),
         
         insurance = plotData2() %>%
-          model (
-            classical_decomposition(TVadverts, type = "additive")
-          ) %>%
+          model (classical_decomposition(TVadverts, type = "additive")) %>%
           components() %>%
           autoplot() + dark_theme_light() +
           ggtitle(
@@ -225,9 +217,7 @@ server <- function(input, output, session) {
           labs(y  = "Sales"),
         
         us_gasoline = plotData2() %>%
-          model (
-            classical_decomposition(Barrels, type = "additive")
-          ) %>%
+          model (classical_decomposition(Barrels, type = "additive")) %>%
           components() %>%
           autoplot() + dark_theme_light() +
           ggtitle(
@@ -310,9 +300,7 @@ server <- function(input, output, session) {
           labs(y  = "TVadverts"),
         
         souvenirs = plotData2() %>%
-          model (
-            classical_decomposition(Sales, type = "multiplicative")
-          ) %>%
+          model (classical_decomposition(Sales, type = "multiplicative")) %>%
           components() %>%
           autoplot() + dark_theme_light() +
           ggtitle(
@@ -351,44 +339,43 @@ server <- function(input, output, session) {
   
   # Will create a plot of the dataset and forecast based of user choice
   output$predictionModel <- renderPlot({
-    
-    
-switch (
-  input$data3,
-  
-  aus_accommodation = { switch (
-        runButton(),
-        
-        Naive = aus_accommodation %>%
-          model(NAIVE(Takings)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = aus_accommodation %>%
-          model(SNAIVE(Takings)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = aus_accommodation %>%
-          model(MEAN(Takings)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = aus_accommodation %>%
-          model(RW(Takings ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = aus_accommodation %>%
-          model(ETS(Takings ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = aus_accommodation %>%
-          model(ETS(Takings ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
+    switch (
+      input$data3,
       
-      aus_accommodation %>%
-        autoplot(Takings) + autolayer(fc) + dark_theme_light() +
-        ggtitle(paste(Names[1], "With Forecasts")) +
-        theme(plot.title = element_text(hjust = 0.5))
-    
+      aus_accommodation = {
+        switch (
+          runButton(),
+          
+          Naive = aus_accommodation %>%
+            model(NAIVE(Takings)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = aus_accommodation %>%
+            model(SNAIVE(Takings)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = aus_accommodation %>%
+            model(MEAN(Takings)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = aus_accommodation %>%
+            model(RW(Takings ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = aus_accommodation %>%
+            model(ETS(Takings ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = aus_accommodation %>%
+            model(ETS(Takings ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        aus_accommodation %>%
+          autoplot(Takings) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[1], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+        
         switch (
           runButton(),
           
@@ -401,9 +388,7 @@ switch (
             forecast(h = 5) ->> fc,
           
           "Random Walk(Seasonal)" = aus_accommodation %>%
-            model(ARIMA(
-              Takings ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-            )) %>%
+            model(ARIMA(Takings ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
             forecast(h = 5) ->> fc,
           
           
@@ -417,303 +402,299 @@ switch (
           ggtitle(paste(Names[1], "With Forecasts")) +
           theme(plot.title = element_text(hjust = 0.5))
       },
-
-    
-
-     aus_arrivals = { switch (
-        runButton(),
-        
-        Naive = aus_arrivals %>%
-          model(NAIVE(Arrivals)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = aus_arrivals %>%
-          model(SNAIVE(Arrivals)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = aus_arrivals %>%
-          model(MEAN(Arrivals)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = aus_arrivals %>%
-          model(RW(Arrivals ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = aus_arrivals %>%
-          model(ETS(Arrivals ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = aus_arrivals %>%
-          model(ETS(Arrivals ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
-   
-   aus_arrivals %>%
-      autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[2], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-    
-    
-      switch (
-        runButton(),
-        
-        "White Noise(Non-seasonal)" =  aus_arrivals %>%
-          model(ARIMA(Arrivals ~ pdq(0, 0, 0))) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Random Walk(Non-seasonal)" = aus_arrivals %>%
-          model(ARIMA(Arrivals ~ pdq(0, 1, 0))) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Random Walk(Seasonal)" = aus_arrivals %>%
-          model(ARIMA(
-            Arrivals ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-          )) %>%
-          forecast(h = 5) ->> fc,
-        
-        
-        "Auto Arima" = aus_arrivals %>%
-          model(ARIMA(Arrivals, stepwise = FALSE)) %>%
-          forecast(h = 5) ->> fc
-      )
-      
-      aus_arrivals %>%
-        autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
-        ggtitle(paste(Names[2], "With Forecasts")) +
-        theme(plot.title = element_text(hjust = 0.5))
-    },
-  
-  canadian_gas = { switch (
-    runButton(),
-    
-    Naive = canadian_gas %>%
-      model(NAIVE(Volume)) %>%
-      forecast(h = 5) ->> fc,
-    
-    "Seasonal Naive" = canadian_gas %>%
-      model(SNAIVE(Volume)) %>%
-      forecast(h = 5) ->> fc,
-    
-    Mean = canadian_gas %>%
-      model(MEAN(Volume)) %>%
-      forecast(h = 5) ->> fc,
-    
-    Drift = canadian_gas %>%
-      model(RW(Volume ~ drift())) %>%
-      forecast(h = 5) ->> fc,
-    
-    "ETS-HOLTS" = canadian_gas %>%
-      model(ETS(Volume ~ trend())) %>%
-      forecast(h = 5) ->> fc,
-    
-    "ETS-HOLTS/WINTER" = canadian_gas %>%
-      model(ETS(Volume ~ trend() + season())) %>%
-      forecast(h = 5) ->> fc
-  )
-    
-    canadian_gas %>%
-      autoplot(Volume) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[3], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-    
-    
-    switch (
-      runButton(),
-      
-      "White Noise(Non-seasonal)" =  canadian_gas %>%
-        model(ARIMA(Volume ~ pdq(0, 0, 0))) %>%
-        forecast(h = 5) ->> fc,
-      
-      "Random Walk(Non-seasonal)" = canadian_gas %>%
-        model(ARIMA(Volume ~ pdq(0, 1, 0))) %>%
-        forecast(h = 5) ->> fc,
-      
-      "Random Walk(Seasonal)" = canadian_gas %>%
-        model(ARIMA(
-          Volume ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-        )) %>%
-        forecast(h = 5) ->> fc,
       
       
-      "Auto Arima" = canadian_gas %>%
-        model(ARIMA(Volume, stepwise = FALSE)) %>%
-        forecast(h = 5) ->> fc
+      
+      aus_arrivals = {
+        switch (
+          runButton(),
+          
+          Naive = aus_arrivals %>%
+            model(NAIVE(Arrivals)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = aus_arrivals %>%
+            model(SNAIVE(Arrivals)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = aus_arrivals %>%
+            model(MEAN(Arrivals)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = aus_arrivals %>%
+            model(RW(Arrivals ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = aus_arrivals %>%
+            model(ETS(Arrivals ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = aus_arrivals %>%
+            model(ETS(Arrivals ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        aus_arrivals %>%
+          autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[2], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+        
+        
+        switch (
+          runButton(),
+          
+          "White Noise(Non-seasonal)" =  aus_arrivals %>%
+            model(ARIMA(Arrivals ~ pdq(0, 0, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Non-seasonal)" = aus_arrivals %>%
+            model(ARIMA(Arrivals ~ pdq(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Seasonal)" = aus_arrivals %>%
+            model(ARIMA(Arrivals ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          
+          "Auto Arima" = aus_arrivals %>%
+            model(ARIMA(Arrivals, stepwise = FALSE)) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        aus_arrivals %>%
+          autoplot(Arrivals) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[2], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+      },
+      
+      canadian_gas = {
+        switch (
+          runButton(),
+          
+          Naive = canadian_gas %>%
+            model(NAIVE(Volume)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = canadian_gas %>%
+            model(SNAIVE(Volume)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = canadian_gas %>%
+            model(MEAN(Volume)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = canadian_gas %>%
+            model(RW(Volume ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = canadian_gas %>%
+            model(ETS(Volume ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = canadian_gas %>%
+            model(ETS(Volume ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        canadian_gas %>%
+          autoplot(Volume) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[3], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+        
+        
+        switch (
+          runButton(),
+          
+          "White Noise(Non-seasonal)" =  canadian_gas %>%
+            model(ARIMA(Volume ~ pdq(0, 0, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Non-seasonal)" = canadian_gas %>%
+            model(ARIMA(Volume ~ pdq(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Seasonal)" = canadian_gas %>%
+            model(ARIMA(Volume ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          
+          "Auto Arima" = canadian_gas %>%
+            model(ARIMA(Volume, stepwise = FALSE)) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        canadian_gas %>%
+          autoplot(Volume) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[3], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+      },
+      
+      insurance = {
+        switch (
+          runButton(),
+          
+          Naive = insurance %>%
+            model(NAIVE(TVadverts)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = insurance %>%
+            model(SNAIVE(TVadverts)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = insurance %>%
+            model(MEAN(TVadverts)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = insurance %>%
+            model(RW(TVadverts ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = insurance %>%
+            model(ETS(TVadverts ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = insurance %>%
+            model(ETS(TVadverts ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        insurance %>%
+          autoplot(TVadverts) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[4], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+        
+        
+        switch (
+          runButton(),
+          
+          "White Noise(Non-seasonal)" =  insurance %>%
+            model(ARIMA(TVadverts ~ pdq(0, 0, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Non-seasonal)" = insurance %>%
+            model(ARIMA(TVadverts ~ pdq(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Seasonal)" = insurance %>%
+            model(ARIMA(TVadverts ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          
+          "Auto Arima" = insurance %>%
+            model(ARIMA(TVadverts, stepwise = FALSE)) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        insurance %>%
+          autoplot(TVadverts) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[4], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+      },
+      
+      souvenirs = {
+        switch (
+          runButton(),
+          
+          Naive = souvenirs %>%
+            model(NAIVE(Sales)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = souvenirs %>%
+            model(SNAIVE(Sales)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = souvenirs %>%
+            model(MEAN(Sales)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = souvenirs %>%
+            model(RW(Sales ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = souvenirs %>%
+            model(ETS(Sales ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = souvenirs %>%
+            model(ETS(Sales ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        souvenirs %>%
+          autoplot(Sales) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[4], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+        
+        
+        switch (
+          runButton(),
+          
+          "White Noise(Non-seasonal)" =  souvenirs %>%
+            model(ARIMA(Sales ~ pdq(0, 0, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Non-seasonal)" = souvenirs %>%
+            model(ARIMA(Sales ~ pdq(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Random Walk(Seasonal)" = souvenirs %>%
+            model(ARIMA(Sales ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
+            forecast(h = 5) ->> fc,
+          
+          
+          "Auto Arima" = souvenirs %>%
+            model(ARIMA(Sales, stepwise = FALSE)) %>%
+            forecast(h = 5) ->> fc
+        )
+        
+        souvenirs %>%
+          autoplot(Sales) + autolayer(fc) + dark_theme_light() +
+          ggtitle(paste(Names[5], "With Forecasts")) +
+          theme(plot.title = element_text(hjust = 0.5))
+      }
+      
+      
+      
+      
+      
     )
-    
-    canadian_gas %>%
-      autoplot(Volume) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[3], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-  },
-  
-  insurance = { switch (
-    runButton(),
-    
-    Naive = insurance %>%
-      model(NAIVE(TVadverts)) %>%
-      forecast(h = 5) ->> fc,
-    
-    "Seasonal Naive" = insurance %>%
-      model(SNAIVE(TVadverts)) %>%
-      forecast(h = 5) ->> fc,
-    
-    Mean = insurance %>%
-      model(MEAN(TVadverts)) %>%
-      forecast(h = 5) ->> fc,
-    
-    Drift = insurance %>%
-      model(RW(TVadverts ~ drift())) %>%
-      forecast(h = 5) ->> fc,
-    
-    "ETS-HOLTS" = insurance %>%
-      model(ETS(TVadverts ~ trend())) %>%
-      forecast(h = 5) ->> fc,
-    
-    "ETS-HOLTS/WINTER" = insurance %>%
-      model(ETS(TVadverts ~ trend() + season())) %>%
-      forecast(h = 5) ->> fc
-  )
-    
-    insurance %>%
-      autoplot(TVadverts) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[4], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-    
-    
-    switch (
-      runButton(),
-      
-      "White Noise(Non-seasonal)" =  insurance %>%
-        model(ARIMA(TVadverts ~ pdq(0, 0, 0))) %>%
-        forecast(h = 5) ->> fc,
-      
-      "Random Walk(Non-seasonal)" = insurance %>%
-        model(ARIMA(TVadverts ~ pdq(0, 1, 0))) %>%
-        forecast(h = 5) ->> fc,
-      
-      "Random Walk(Seasonal)" = insurance %>%
-        model(ARIMA(
-          TVadverts ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-        )) %>%
-        forecast(h = 5) ->> fc,
-      
-      
-      "Auto Arima" = insurance %>%
-        model(ARIMA(TVadverts, stepwise = FALSE)) %>%
-        forecast(h = 5) ->> fc
-    )
-    
-    insurance %>%
-      autoplot(TVadverts) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[4], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-  },
-  
-  souvenirs = { switch (
-    runButton(),
-    
-    Naive = souvenirs %>%
-      model(NAIVE(Sales)) %>%
-      forecast(h = 5) ->> fc,
-    
-    "Seasonal Naive" = souvenirs %>%
-      model(SNAIVE(Sales)) %>%
-      forecast(h = 5) ->> fc,
-    
-    Mean = souvenirs %>%
-      model(MEAN(Sales)) %>%
-      forecast(h = 5) ->> fc,
-    
-    Drift = souvenirs %>%
-      model(RW(Sales ~ drift())) %>%
-      forecast(h = 5) ->> fc,
-    
-    "ETS-HOLTS" = souvenirs %>%
-      model(ETS(Sales ~ trend())) %>%
-      forecast(h = 5) ->> fc,
-    
-    "ETS-HOLTS/WINTER" = souvenirs %>%
-      model(ETS(Sales ~ trend() + season())) %>%
-      forecast(h = 5) ->> fc
-  )
-    
-    souvenirs %>%
-      autoplot(Sales) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[4], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-    
-    
-    switch (
-      runButton(),
-      
-      "White Noise(Non-seasonal)" =  souvenirs %>%
-        model(ARIMA(Sales ~ pdq(0, 0, 0))) %>%
-        forecast(h = 5) ->> fc,
-      
-      "Random Walk(Non-seasonal)" = souvenirs %>%
-        model(ARIMA(Sales ~ pdq(0, 1, 0))) %>%
-        forecast(h = 5) ->> fc,
-      
-      "Random Walk(Seasonal)" = souvenirs %>%
-        model(ARIMA(
-          Sales ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-        )) %>%
-        forecast(h = 5) ->> fc,
-      
-      
-      "Auto Arima" = souvenirs %>%
-        model(ARIMA(Sales, stepwise = FALSE)) %>%
-        forecast(h = 5) ->> fc
-    )
-    
-    souvenirs %>%
-      autoplot(Sales) + autolayer(fc) + dark_theme_light() +
-      ggtitle(paste(Names[5], "With Forecasts")) +
-      theme(plot.title = element_text(hjust = 0.5))
-  }
-  
-    
-    
-   
-    
-)
     
     
   })
   
-# Will create a plot of the forecast selected to get a closer look  
+  # Will create a plot of the forecast selected to get a closer look
   output$predictionModel2 <- renderPlot({
-    
     switch (
       input$data3,
       
-      aus_accommodation = { switch (
-        runButton(),
-        
-        Naive = aus_accommodation %>%
-          model(NAIVE(Takings)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = aus_accommodation %>%
-          model(SNAIVE(Takings)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = aus_accommodation %>%
-          model(MEAN(Takings)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = aus_accommodation %>%
-          model(RW(Takings ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = aus_accommodation %>%
-          model(ETS(Takings ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = aus_accommodation %>%
-          model(ETS(Takings ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
+      aus_accommodation = {
+        switch (
+          runButton(),
+          
+          Naive = aus_accommodation %>%
+            model(NAIVE(Takings)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = aus_accommodation %>%
+            model(SNAIVE(Takings)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = aus_accommodation %>%
+            model(MEAN(Takings)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = aus_accommodation %>%
+            model(RW(Takings ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = aus_accommodation %>%
+            model(ETS(Takings ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = aus_accommodation %>%
+            model(ETS(Takings ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
         
         
         switch (
@@ -728,9 +709,7 @@ switch (
             forecast(h = 5) ->> fc,
           
           "Random Walk(Seasonal)" = aus_accommodation %>%
-            model(ARIMA(
-              Takings ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-            )) %>%
+            model(ARIMA(Takings ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
             forecast(h = 5) ->> fc,
           
           
@@ -743,33 +722,34 @@ switch (
       
       
       
-      aus_arrivals = { switch (
-        runButton(),
-        
-        Naive = aus_arrivals %>%
-          model(NAIVE(Arrivals)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = aus_arrivals %>%
-          model(SNAIVE(Arrivals)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = aus_arrivals %>%
-          model(MEAN(Arrivals)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = aus_arrivals %>%
-          model(RW(Arrivals ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = aus_arrivals %>%
-          model(ETS(Arrivals ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = aus_arrivals %>%
-          model(ETS(Arrivals ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
+      aus_arrivals = {
+        switch (
+          runButton(),
+          
+          Naive = aus_arrivals %>%
+            model(NAIVE(Arrivals)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = aus_arrivals %>%
+            model(SNAIVE(Arrivals)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = aus_arrivals %>%
+            model(MEAN(Arrivals)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = aus_arrivals %>%
+            model(RW(Arrivals ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = aus_arrivals %>%
+            model(ETS(Arrivals ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = aus_arrivals %>%
+            model(ETS(Arrivals ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
         
         
         
@@ -785,9 +765,7 @@ switch (
             forecast(h = 5) ->> fc,
           
           "Random Walk(Seasonal)" = aus_arrivals %>%
-            model(ARIMA(
-              Arrivals ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-            )) %>%
+            model(ARIMA(Arrivals ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
             forecast(h = 5) ->> fc,
           
           
@@ -798,33 +776,34 @@ switch (
         
       },
       
-      canadian_gas = { switch (
-        runButton(),
-        
-        Naive = canadian_gas %>%
-          model(NAIVE(Volume)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = canadian_gas %>%
-          model(SNAIVE(Volume)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = canadian_gas %>%
-          model(MEAN(Volume)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = canadian_gas %>%
-          model(RW(Volume ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = canadian_gas %>%
-          model(ETS(Volume ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = canadian_gas %>%
-          model(ETS(Volume ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
+      canadian_gas = {
+        switch (
+          runButton(),
+          
+          Naive = canadian_gas %>%
+            model(NAIVE(Volume)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = canadian_gas %>%
+            model(SNAIVE(Volume)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = canadian_gas %>%
+            model(MEAN(Volume)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = canadian_gas %>%
+            model(RW(Volume ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = canadian_gas %>%
+            model(ETS(Volume ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = canadian_gas %>%
+            model(ETS(Volume ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
         
         
         
@@ -840,9 +819,7 @@ switch (
             forecast(h = 5) ->> fc,
           
           "Random Walk(Seasonal)" = canadian_gas %>%
-            model(ARIMA(
-              Volume ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-            )) %>%
+            model(ARIMA(Volume ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
             forecast(h = 5) ->> fc,
           
           
@@ -851,36 +828,37 @@ switch (
             forecast(h = 5) ->> fc
         )
         
-       
+        
       },
       
-      insurance = { switch (
-        runButton(),
-        
-        Naive = insurance %>%
-          model(NAIVE(TVadverts)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = insurance %>%
-          model(SNAIVE(TVadverts)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = insurance %>%
-          model(MEAN(TVadverts)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = insurance %>%
-          model(RW(TVadverts ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = insurance %>%
-          model(ETS(TVadverts ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = insurance %>%
-          model(ETS(TVadverts ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
+      insurance = {
+        switch (
+          runButton(),
+          
+          Naive = insurance %>%
+            model(NAIVE(TVadverts)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = insurance %>%
+            model(SNAIVE(TVadverts)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = insurance %>%
+            model(MEAN(TVadverts)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = insurance %>%
+            model(RW(TVadverts ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = insurance %>%
+            model(ETS(TVadverts ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = insurance %>%
+            model(ETS(TVadverts ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
         
         
         
@@ -896,9 +874,7 @@ switch (
             forecast(h = 5) ->> fc,
           
           "Random Walk(Seasonal)" = insurance %>%
-            model(ARIMA(
-              TVadverts ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-            )) %>%
+            model(ARIMA(TVadverts ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
             forecast(h = 5) ->> fc,
           
           
@@ -907,37 +883,38 @@ switch (
             forecast(h = 5) ->> fc
         )
         
-      
+        
       },
       
-      souvenirs = { switch (
-        runButton(),
+      souvenirs = {
+        switch (
+          runButton(),
+          
+          Naive = souvenirs %>%
+            model(NAIVE(Sales)) %>%
+            forecast(h = 5) ->> fc,
+          
+          "Seasonal Naive" = souvenirs %>%
+            model(SNAIVE(Sales)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Mean = souvenirs %>%
+            model(MEAN(Sales)) %>%
+            forecast(h = 5) ->> fc,
+          
+          Drift = souvenirs %>%
+            model(RW(Sales ~ drift())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS" = souvenirs %>%
+            model(ETS(Sales ~ trend())) %>%
+            forecast(h = 5) ->> fc,
+          
+          "ETS-HOLTS/WINTER" = souvenirs %>%
+            model(ETS(Sales ~ trend() + season())) %>%
+            forecast(h = 5) ->> fc
+        )
         
-        Naive = souvenirs %>%
-          model(NAIVE(Sales)) %>%
-          forecast(h = 5) ->> fc,
-        
-        "Seasonal Naive" = souvenirs %>%
-          model(SNAIVE(Sales)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Mean = souvenirs %>%
-          model(MEAN(Sales)) %>%
-          forecast(h = 5) ->> fc,
-        
-        Drift = souvenirs %>%
-          model(RW(Sales ~ drift())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS" = souvenirs %>%
-          model(ETS(Sales ~ trend())) %>%
-          forecast(h = 5) ->> fc,
-        
-        "ETS-HOLTS/WINTER" = souvenirs %>%
-          model(ETS(Sales ~ trend() + season())) %>%
-          forecast(h = 5) ->> fc
-      )
-      
         
         switch (
           runButton(),
@@ -951,9 +928,7 @@ switch (
             forecast(h = 5) ->> fc,
           
           "Random Walk(Seasonal)" = souvenirs %>%
-            model(ARIMA(
-              Sales ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
-            )) %>%
+            model(ARIMA(Sales ~ pdq(0, 1, 0) + PDQ(0, 1, 0))) %>%
             forecast(h = 5) ->> fc,
           
           
@@ -963,7 +938,7 @@ switch (
         )
       }
     )
-        
+    
     
     fc %>%
       autoplot() + dark_theme_light() +
@@ -1010,10 +985,8 @@ switch (
         ) %>%
         components() %>%
         autoplot() + dark_theme_light() +
-        ggtitle(paste(
-          "Multiplicative Decomp for",
-          Names[2]
-        ))
+        ggtitle(paste("Multiplicative Decomp for",
+                      Names[2]))
       
     )
   })
@@ -1021,91 +994,82 @@ switch (
   
   # Showing instructions for plot page
   observeEvent(input$show, {
-    showModal(
-      modalDialog(
-        title = "Instructions",
-        
-        HTML(
-          "<font size=+1>   <li> Select a time series from the list. </li>
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>   <li> Select a time series from the list. </li>
                         <li> Choose a Y variable to look at and whether you want a seasonal or autocorrelation plot</li>
                         <li> A interactive full plot of time series will be shown below as well as the chosen seasonal or autocorrelation
                              plot on the top right. </li>
                         <li> On the full plot click the legend names to hide it from the plot </li>
                         <li> For more info on datasets check info tab </li> </font>"
-          
-        ),
-        easyClose = TRUE,
-        footer = NULL,
-        fade = T
-      )
-    )
+        
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
   })
   
   # Showing instructions for decomposition page
   observeEvent(input$show2, {
-    showModal(
-      modalDialog(
-        title = "Instructions",
-        
-        HTML(
-          "<font size=+1>
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>
                       <li> Select a time series from the list </li>
                       <li> Choose what type of Decomp. plot you want </li>
                       <li> A interactive Decomp. plot of the series will be displayed below. </li>
                       <li> Click the legend names to hide it from the plot </li>
                       <li> For more info on datasets check info tab </li></font>
                       **** Y variables are already chosen for each decomp **** "
-        ),
-        easyClose = TRUE,
-        footer = NULL,
-        fade = T
-      )
-    )
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
   })
   
   # instructions for forecast page
   observeEvent(input$show3, {
-    showModal(
-      modalDialog(
-        title = "Instructions",
-        
-        HTML(
-          "<font size=+1> This tab is made to show forecasts on the datasets from the
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1> This tab is made to show forecasts on the datasets from the
                           fpp3 package. Choose whether you want to look at simple forecasts models or ARIMA forecasts models.
                           Then, choose one of the models you would like to use and click Run Forecast. Once Run Forecast is clicked,
                           there will be two plots shown below: the top plot, which shows the original data and forecasted data together, and
-                          the bottom plot, which shows the forecasted data only. All forecasts are predicting the next 
-                          5 periods (months, years, quarters, etc.). Y variables are pre-selected. For more info on datasets, look on info tab. 
+                          the bottom plot, which shows the forecasted data only. All forecasts are predicting the next
+                          5 periods (months, years, quarters, etc.). Y variables are pre-selected. For more info on datasets, look on info tab.
                           **Note: Auto Arima might take a while to load**.</font>"
-          
-        ),
-        easyClose = TRUE,
-        footer = NULL,
-        fade = T
-      )
-    )
+        
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
   })
   
   #instructions for interpretation page
   observeEvent(input$show4, {
-    showModal(
-      modalDialog(
-        title = "Instructions",
-        
-        HTML(
-          "<font size=+1>  This tab is made to show interpretations on the aus_arrival dataset from the
+    showModal(modalDialog(
+      title = "Instructions",
+      
+      HTML(
+        "<font size=+1>  This tab is made to show interpretations on the aus_arrival dataset from the
                           fpp3 package. There will be an interpretation done on the full, seasonal, autocorrelation,
                           additive decomp., and multiplicative decomp. plots of the time series. To see the different
                           interpretations and plots, just click on one of the button choices.</font>"
-          
-        ),
-        easyClose = TRUE,
-        footer = NULL,
-        fade = T
-      )
-    )
+        
+      ),
+      easyClose = TRUE,
+      footer = NULL,
+      fade = T
+    ))
   })
   
   
 }
-

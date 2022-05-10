@@ -140,12 +140,11 @@ ui <- navbarPage(
   
   # Tab for forecasting models
   tabPanel(
-    "Forecasting", 
+    "Forecasting",
     
     fluidRow(
       width = 6,
       sidebarPanel(
-        
         selectizeInput("data3", label = "Select a Dataframe",
                        choices = dataSet[c(1, 3, 6, 8, 10)]),
         
@@ -197,7 +196,7 @@ ui <- navbarPage(
       loader = "dnaspin",
       
       plotOutput("predictionModel2")
-    ), 
+    ),
     icon = icon("clock")
   ),
   
