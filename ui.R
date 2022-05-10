@@ -197,7 +197,7 @@ ui <- navbarPage(
       
       plotOutput("predictionModel2")
     ),
-    icon = icon("clock")
+    icon = icon("calendar")
   ),
   
   # Other menu options
